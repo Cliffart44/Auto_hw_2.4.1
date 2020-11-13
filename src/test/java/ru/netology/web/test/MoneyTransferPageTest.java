@@ -1,53 +1,61 @@
 package ru.netology.web.test;
 
-import lombok.val;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.web.page.LoginPage;
-import ru.netology.web.page.TransferPage;
+import ru.netology.web.page.DashboardPage;
 
 import static com.codeborne.selenide.Selenide.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static ru.netology.web.data.DataHelper.*;
+import static ru.netology.web.data.DataHelper.Balance.*;
 
 
 class MoneyTransferPageTest {
+    private int[] cardsBalance;
+    private int value1 = 5_637;
+    private int value2 = 4_126;
+    private int value3 = 1_968;
 
     @BeforeEach
     void setUp() {
         open("http://localhost:9999");
+        new LoginPage().validLogin(getAuthInfo()).validVerify(getVerificationCodeFor(getAuthInfo()));
+        cardsBalance = cardsBalance();
+        cardsBalance = justifyBalance(cardsBalance[1], cardsBalance[2]);
+        assert cardsBalance != null;
+        assertEquals(cardsBalance[1], cardsBalance[2]);
+    }
+
+    @AfterEach
+    void asserting() {
+        cardsBalance = cardsBalance();
+        cardsBalance = justifyBalance(cardsBalance[1], cardsBalance[2]);
+        assert cardsBalance != null;
+        assertEquals(cardsBalance[1], cardsBalance[2]);
     }
 
     @Test
     void shouldTransferMoneyBetweenOwnCards() {
-        val loginPage = new LoginPage();
-        val authInfo = getAuthInfo();
-        val verificationPage = loginPage.validLogin(authInfo);
-        val verificationCode = getVerificationCodeFor(authInfo);
-        val dashboard = verificationPage.validVerify(verificationCode);
-        val transferPage = new TransferPage();
-        transferPage.Transaction("5637", false);
-        transferPage.Transaction("4126", false);
-        transferPage.Transaction("1986", true);
-        dashboard.defineCardsBalance();
-        assertEquals(dashboard.getCard1balance(), 17_777);
-        assertEquals(dashboard.getCard2balance(), 2_223);
-        dashboard.justifyBalance();
-        assertEquals(dashboard.getCard1balance(), dashboard.getCard2balance());
+        int expectedFirst = cardsBalance[1] + value1 + value2 - value3;
+        int expectedSecond = cardsBalance[2] - value1 - value2 + value3;
+        var dashboard = new DashboardPage();
+        dashboard.moneyTransfer(cardNumber(1)).transaction(Integer.toString(value1), cardNumber(2));
+        dashboard.moneyTransfer(cardNumber(1)).transaction(Integer.toString(value2), cardNumber(2));
+        dashboard.moneyTransfer(cardNumber(2)).transaction(Integer.toString(value3), cardNumber(1));
+        cardsBalance = cardsBalance();
+        assertEquals(expectedFirst, cardsBalance[1]);
+        assertEquals(expectedSecond, cardsBalance[2]);
     }
 
     @Test
-    void shouldNotTransferMoneyBetweenOwnCards() {
-        val loginPage = new LoginPage();
-        val authInfo = getAuthInfo();
-        val verificationPage = loginPage.validLogin(authInfo);
-        val verificationCode = getVerificationCodeFor(authInfo);
-        val dashboard = verificationPage.validVerify(verificationCode);
-        val transferPage = new TransferPage();
-        transferPage.Transaction("50000", true);
-        dashboard.defineCardsBalance();
-        System.out.println("Баланс тестовой карты 1 после теста \"shouldNotTransferMoneyBetweenOwnCards\": -" + dashboard.getCard1balance() + " p.");
-        System.out.println("Баланс тестовой карты 2 после теста \"shouldNotTransferMoneyBetweenOwnCards\": " + dashboard.getCard2balance() + " p.");
-        transferPage.Transaction("50000", false);
+    void shouldNotEgressOutOfBounds() {
+        int expectedFirst = cardsBalance[1];
+        int expectedSecond = cardsBalance[2];
+        new DashboardPage().moneyTransfer(cardNumber(1)).transaction(Integer.toString(value1 + value2 + value3), cardNumber(2));
+        cardsBalance = cardsBalance();
+        assertEquals(expectedFirst, cardsBalance[1]);
+        assertEquals(expectedSecond, cardsBalance[2]);
     }
 }
