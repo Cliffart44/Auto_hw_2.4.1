@@ -1,34 +1,53 @@
 package ru.netology.web.page;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.base.CharMatcher;
+import org.jetbrains.annotations.NotNull;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
+import static ru.netology.web.data.DataHelper.*;
 
 public class DashboardPage {
-    private String dataTestId;
-    private SelenideElement heading = $(".heading_size_xl");
-    private SelenideElement addFundsCard1Button = $("[data-test-id='92df3f1c-a033-48e6-8390-206f6b1f56c0'] .button__text");
-    private SelenideElement addFundsCard2Button = $("[data-test-id='0f3f5c2a-249e-4c3d-8287-09f7a039391d'] .button__text");
+    private static SelenideElement heading = $(".heading_size_xl");
+    private static SelenideElement addFundsCard1Button = $("[data-test-id='92df3f1c-a033-48e6-8390-206f6b1f56c0'] .button__text");
+    private static SelenideElement addFundsCard2Button = $("[data-test-id='0f3f5c2a-249e-4c3d-8287-09f7a039391d'] .button__text");
 
     public DashboardPage() {
         heading.shouldBe(visible).shouldHave(text("Ваши карты"));
     }
 
-    private void defineCard(String number) {
-        ElementsCollection cards = $$("li div");
-        int required = Integer.parseInt(CharMatcher.inRange('0', '9').retainFrom(number.substring(15, 19)));
-        for (SelenideElement card : cards) {
-            int found = Integer.parseInt(CharMatcher.inRange('0', '9').retainFrom(card.getText().substring(15, 19)));
-            if (found == required) dataTestId = card.getAttribute("data-test-id");
-        }
+    public TransferPage moneyTransfer(String number) {
+        $$(".list__item").find(text(number.substring(15, 19))).$("button").click();
+        return new TransferPage();
     }
 
-    public TransferPage moneyTransfer(String targetCardNumber) {
-        defineCard(targetCardNumber);
-        $("[data-test-id='" + dataTestId + "'] .button__text").click();
-        return new TransferPage();
+    public static int[] cardsBalance() {
+        heading.shouldBe(visible).shouldHave(text("Ваши карты"));
+        int[] result = new int[3];
+        String tmp = $$(".list__item").find(text(cardNumber(1).substring(15, 19))).$("div").getOwnText().substring(20);
+        result[1] = Integer.parseInt(CharMatcher.inRange('0', '9').retainFrom(tmp));
+        String tmp2 = $$(".list__item").find(text(cardNumber(2).substring(15, 19))).$("div").getOwnText().substring(20);
+        result[2] = Integer.parseInt(CharMatcher.inRange('0', '9').retainFrom(tmp2));
+        return result;
+    }
+
+    @NotNull
+    public static int[] justifyBalance(int cardOne, int cardTwo) {
+        heading.shouldBe(visible).shouldHave(text("Ваши карты"));
+        int inequality = cardOne - cardTwo;
+        int justifyValue = inequality / 2;
+        if (inequality == 0) return cardsBalance();
+        else if (inequality > 0) {
+            addFundsCard2Button.click();
+            new TransferPage().transaction(Integer.toString(justifyValue), cardNumber(1));
+            return cardsBalance();
+        }
+        if (inequality < 0) {
+            addFundsCard1Button.click();
+            new TransferPage().transaction(Integer.toString(justifyValue * (-1)), cardNumber(2));
+            return cardsBalance();
+        }
+        return cardsBalance();
     }
 }

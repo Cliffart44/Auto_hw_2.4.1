@@ -6,14 +6,14 @@ import org.junit.jupiter.api.Test;
 import ru.netology.web.page.LoginPage;
 import ru.netology.web.page.DashboardPage;
 
+import static ru.netology.web.page.DashboardPage.*;
 import static ru.netology.web.data.DataHelper.*;
-import static ru.netology.web.data.DataHelper.Balance.*;
 
 
 import static com.codeborne.selenide.Selenide.open;
 import static org.junit.jupiter.api.Assertions.*;
 
-class DataHelperTest {
+class DashboardPageTest {
     private int[] cardsBalance;
 
     @BeforeEach
@@ -22,7 +22,6 @@ class DataHelperTest {
         new LoginPage().validLogin(getAuthInfo()).validVerify(getVerificationCodeFor(getAuthInfo()));
         cardsBalance = cardsBalance();
         cardsBalance = justifyBalance(cardsBalance[1], cardsBalance[2]);
-        assert cardsBalance != null;
         assertEquals(cardsBalance[1], cardsBalance[2]);
     }
 
@@ -30,7 +29,6 @@ class DataHelperTest {
     void asserting() {
         cardsBalance = cardsBalance();
         cardsBalance = justifyBalance(cardsBalance[1], cardsBalance[2]);
-        assert cardsBalance != null;
         assertEquals(cardsBalance[1], cardsBalance[2]);
     }
 
