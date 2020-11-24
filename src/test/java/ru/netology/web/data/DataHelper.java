@@ -2,6 +2,12 @@ package ru.netology.web.data;
 
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
+import ru.netology.web.page.TransferPage;
+
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+import static ru.netology.web.page.DashboardPage.*;
+
 
 public class DataHelper {
     private DataHelper() {
@@ -37,5 +43,24 @@ public class DataHelper {
 
     public static VerificationCode getVerificationCodeFor(AuthInfo authInfo) {
         return new VerificationCode("12345");
+    }
+
+    @NotNull
+    public static int[] justifyBalance(int cardOne, int cardTwo) {
+        getHeading().shouldBe(visible).shouldHave(text("Ваши карты"));
+        int inequality = cardOne - cardTwo;
+        int justifyValue = inequality / 2;
+        if (inequality == 0) return cardsBalance();
+        else if (inequality > 0) {
+            getAddFundsCard2Button().click();
+            new TransferPage().transaction(Integer.toString(justifyValue), cardNumber(1));
+            return cardsBalance();
+        }
+        if (inequality < 0) {
+            getAddFundsCard1Button().click();
+            new TransferPage().transaction(Integer.toString(justifyValue * (-1)), cardNumber(2));
+            return cardsBalance();
+        }
+        return cardsBalance();
     }
 }

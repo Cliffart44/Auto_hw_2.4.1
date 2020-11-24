@@ -9,11 +9,10 @@ import ru.netology.web.page.DashboardPage;
 import static ru.netology.web.page.DashboardPage.*;
 import static ru.netology.web.data.DataHelper.*;
 
-
 import static com.codeborne.selenide.Selenide.open;
 import static org.junit.jupiter.api.Assertions.*;
 
-class DashboardPageTest {
+class DataHelperTest {
     private int[] cardsBalance;
 
     @BeforeEach

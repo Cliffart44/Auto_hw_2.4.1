@@ -2,7 +2,6 @@ package ru.netology.web.page;
 
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.base.CharMatcher;
-import org.jetbrains.annotations.NotNull;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
@@ -32,22 +31,15 @@ public class DashboardPage {
         return result;
     }
 
-    @NotNull
-    public static int[] justifyBalance(int cardOne, int cardTwo) {
-        heading.shouldBe(visible).shouldHave(text("Ваши карты"));
-        int inequality = cardOne - cardTwo;
-        int justifyValue = inequality / 2;
-        if (inequality == 0) return cardsBalance();
-        else if (inequality > 0) {
-            addFundsCard2Button.click();
-            new TransferPage().transaction(Integer.toString(justifyValue), cardNumber(1));
-            return cardsBalance();
-        }
-        if (inequality < 0) {
-            addFundsCard1Button.click();
-            new TransferPage().transaction(Integer.toString(justifyValue * (-1)), cardNumber(2));
-            return cardsBalance();
-        }
-        return cardsBalance();
+    public static SelenideElement getHeading() {
+        return heading;
+    }
+
+    public static SelenideElement getAddFundsCard1Button() {
+        return addFundsCard1Button;
+    }
+
+    public static SelenideElement getAddFundsCard2Button() {
+        return addFundsCard2Button;
     }
 }
